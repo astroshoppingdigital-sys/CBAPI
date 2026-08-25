@@ -9,8 +9,8 @@ CORS(app)
 # URL da API externa do futebol
 API_URL = "https://api.api-futebol.com.br/v1/campeonatos/10/tabela"
 
-# Chave de produção (LIVE) configurada
-TOKEN = os.getenv("API_FUTEBOL_TOKEN", "Bearer live_9729ce5b6070a048dd86bdf1835099")
+# Chave de TESTE configurada
+TOKEN = os.getenv("API_FUTEBOL_TOKEN", "Bearer test_c38e25632ec1bfd185c43f2d4ac4ef")
 
 HEADERS = {"Authorization": TOKEN, "User-Agent": "Mozilla/5.0"}
 
