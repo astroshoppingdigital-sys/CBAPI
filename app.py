@@ -9,8 +9,8 @@ CORS(app)
 # URL oficial da API Futebol para o Brasileirão Série A (ID 10)
 API_URL = "https://api.api-futebol.com.br/v1/campeonatos/10/tabela"
 
-# Sua chave live (produção) configurada diretamente
-TOKEN = "Bearer live_9729ce5b6070a048dd86bdf1835099"
+# Sua chave de teste configurada diretamente
+TOKEN = "Bearer test_c38e25632ec1bfd185c43f2d4ac4ef"
 
 HEADERS = {"Authorization": TOKEN, "User-Agent": "Mozilla/5.0"}
 
