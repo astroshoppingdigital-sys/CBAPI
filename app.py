@@ -24,7 +24,7 @@ def home():
 @app.route("/tabela")
 def obter_tabela():
     try:
-        # 1. Consulta a lista de campeonatos liberados na sua chave live
+        # 1. Consulta a lista de campeonatos liberados
         camps_res = requests.get(
             f"{BASE_URL}/campeonatos", headers=HEADERS, timeout=10
         )
@@ -33,8 +33,9 @@ def obter_tabela():
             return (
                 jsonify(
                     {
-                        "erro": "Falha ao consultar campeonatos",
-                        "resposta": camps_res.text,
+                        "erro": "A API recusou a listagem de campeonatos",
+                        "status_code": camps_res.status_code,
+                        "resposta_api": camps_res.text,
                     }
                 ),
                 camps_res.status_code,
@@ -42,30 +43,30 @@ def obter_tabela():
 
         campeonatos = camps_res.json()
 
-        # 2. Encontra automaticamente o ID do Brasileirão Série A ativo
-        serie_a = next(
-            (
-                c
-                for c in campeonatos
-                if "Série A" in c.get("nome", "")
-                or "Brasileirão" in c.get("nome_popular", "")
-            ),
-            None,
-        )
+        # 2. Procura a Série A independente de maiúsculas/minúsculas
+        serie_a = None
+        if isinstance(campeonatos, list):
+            for c in campeonatos:
+                nome = str(c.get("nome", "")).lower()
+                nome_pop = str(c.get("nome_popular", "")).lower()
+                if "série a" in nome or "brasileirão" in nome_pop or "serie a" in nome:
+                    serie_a = c
+                    break
 
         if not serie_a:
             return (
                 jsonify(
                     {
-                        "erro": "Brasileirão Série A não encontrado nos campeonatos liberados."
+                        "erro": "Série A não encontrada na lista liberada.",
+                        "campeonatos_disponiveis": campeonatos,
                     }
                 ),
                 404,
             )
 
-        camp_id = serie_a["campeonato_id"]
+        camp_id = serie_a.get("campeonato_id")
 
-        # 3. Busca a tabela atualizada da edição vigente
+        # 3. Busca a tabela do campeonato encontrado
         tabela_res = requests.get(
             f"{BASE_URL}/campeonatos/{camp_id}/tabela", headers=HEADERS, timeout=10
         )
@@ -76,15 +77,16 @@ def obter_tabela():
             return (
                 jsonify(
                     {
-                        "erro": f"Erro ao buscar tabela do campeonato ID {camp_id}",
-                        "resposta": tabela_res.text,
+                        "erro": f"Erro ao buscar tabela do ID {camp_id}",
+                        "status_code": tabela_res.status_code,
+                        "resposta_api": tabela_res.text,
                     }
                 ),
                 tabela_res.status_code,
             )
 
     except Exception as e:
-        return jsonify({"erro": "Falha na requisição", "detalhes": str(e)}), 500
+        return jsonify({"erro": "Erro interno no servidor", "detalhes": str(e)}), 500
 
 
 if __name__ == "__main__":
