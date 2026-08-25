@@ -6,12 +6,8 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# URL da API externa do futebol
-API_URL = "https://api.api-futebol.com.br/v1/campeonatos/10/tabela"
-
-# Chave de produção (LIVE) configurada
+BASE_URL = "https://api.api-futebol.com.br/v1"
 TOKEN = os.getenv("API_FUTEBOL_TOKEN", "Bearer live_9729ce5b6070a048dd86bdf1835099")
-
 HEADERS = {"Authorization": TOKEN, "User-Agent": "Mozilla/5.0"}
 
 
@@ -20,7 +16,7 @@ def home():
     return jsonify(
         {
             "status": "API online",
-            "mensagem": "Acesse /tabela para ver a classificação do Brasileirão",
+            "mensagem": "Acesse /tabela para ver a classificação atualizada",
         }
     )
 
@@ -28,28 +24,67 @@ def home():
 @app.route("/tabela")
 def obter_tabela():
     try:
-        response = requests.get(API_URL, headers=HEADERS, timeout=10)
+        # 1. Consulta a lista de campeonatos liberados na sua chave live
+        camps_res = requests.get(
+            f"{BASE_URL}/campeonatos", headers=HEADERS, timeout=10
+        )
 
-        # Se a API externa responder com sucesso
-        if response.status_code == 200:
-            return jsonify(response.json())
+        if camps_res.status_code != 200:
+            return (
+                jsonify(
+                    {
+                        "erro": "Falha ao consultar campeonatos",
+                        "resposta": camps_res.text,
+                    }
+                ),
+                camps_res.status_code,
+            )
+
+        campeonatos = camps_res.json()
+
+        # 2. Encontra automaticamente o ID do Brasileirão Série A ativo
+        serie_a = next(
+            (
+                c
+                for c in campeonatos
+                if "Série A" in c.get("nome", "")
+                or "Brasileirão" in c.get("nome_popular", "")
+            ),
+            None,
+        )
+
+        if not serie_a:
+            return (
+                jsonify(
+                    {
+                        "erro": "Brasileirão Série A não encontrado nos campeonatos liberados."
+                    }
+                ),
+                404,
+            )
+
+        camp_id = serie_a["campeonato_id"]
+
+        # 3. Busca a tabela atualizada da edição vigente
+        tabela_res = requests.get(
+            f"{BASE_URL}/campeonatos/{camp_id}/tabela", headers=HEADERS, timeout=10
+        )
+
+        if tabela_res.status_code == 200:
+            return jsonify(tabela_res.json())
         else:
             return (
                 jsonify(
                     {
-                        "erro": "A API de futebol recusou a conexão",
-                        "status_code": response.status_code,
-                        "resposta": response.text,
+                        "erro": f"Erro ao buscar tabela do campeonato ID {camp_id}",
+                        "resposta": tabela_res.text,
                     }
                 ),
-                response.status_code,
+                tabela_res.status_code,
             )
 
     except Exception as e:
-        return (
-            jsonify({"erro": "Falha ao obter dados da API oficial", "detalhes": str(e)}),
-            500,
-        )
+        return jsonify({"erro": "Falha na requisição", "detalhes": str(e)}), 500
 
 
 if __name__ == "__main__":
