@@ -6,7 +6,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# URL da API externa do futebol (campeonato fixo que estava funcionando)
+# URL da API externa do futebol
 API_URL = "https://api.api-futebol.com.br/v1/campeonatos/10/tabela"
 
 # Chave de produção (LIVE) configurada
