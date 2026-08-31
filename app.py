@@ -8,7 +8,7 @@ HTML_TEMPLATE = """
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Brasileirão Série A - Placar e Tabela</title>
+    <title>Brasileirão Série A - ESPN API</title>
     <style>
         body { font-family: Arial, sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; text-align: center; }
         h1 { color: #00ff88; }
@@ -28,8 +28,8 @@ HTML_TEMPLATE = """
     </style>
 </head>
 <body>
-    <h1>Brasileirão Série A - Jogos e Tabela Atualizada</h1>
-    <p>Atualização automática com lances, gols e pontuação pós-jogo.</p>
+    <h1>Brasileirão Série A - Via API ESPN</h1>
+    <p>Dados oficiais sincronizados, com pontuação e fogos coloridos para gols!</p>
 
     <div class="tabela-box">
         <h3>Classificação Parcial (Pontos)</h3>
@@ -61,7 +61,6 @@ HTML_TEMPLATE = """
                 
                 if (!dados) return;
 
-                // Renderiza Tabela de Pontos
                 let tabelaHtml = "";
                 let pts = dados.tabela_pontos || {};
                 for (let time in pts) {
@@ -69,7 +68,6 @@ HTML_TEMPLATE = """
                 }
                 document.getElementById('tabela-corpo').innerHTML = tabelaHtml || "<tr><td colspan='2'>Sem dados de tabela</td></tr>";
 
-                // Renderiza Partidas por Status
                 let html = "";
                 let temGol = false;
                 let partidas = dados.partidas || {};
